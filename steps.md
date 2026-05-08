@@ -233,3 +233,179 @@ But IIS gives you:
 * enterprise compatibility
 
 That’s why IIS sits in front.
+
+
+
+
+# Deploy on NSSM (dont need no terminal running all the time)
+
+<img width="933" height="429" alt="image" src="https://github.com/user-attachments/assets/b833a600-83e4-438d-a585-c6fbb07887d8" />
+
+
+Yes — for a real deployment you usually run Uvicorn as a background Windows service using:
+
+* [NSSM (Non-Sucking Service Manager)](https://nssm.cc?utm_source=chatgpt.com)
+
+That way:
+
+* terminal does NOT need to stay open
+* app starts automatically after reboot
+* IIS can always proxy to it
+* runs like a proper backend service
+
+---
+
+# Important Note About Reload
+
+You generally do:
+
+| Environment | reload  |
+| ----------- | ------- |
+| Development | `True`  |
+| Production  | `False` |
+
+Because reload mode constantly watches files and restarts the server.
+
+So:
+
+```python id="20ogvt"
+reload=False
+```
+
+for NSSM service.
+
+---
+
+# Step 1 — Download NSSM
+
+Download:
+
+* [NSSM Download Page](https://nssm.cc/download?utm_source=chatgpt.com)
+
+Extract it somewhere like:
+
+```text id="mpkn6k"
+C:\nssm
+```
+
+---
+
+# Step 2 — Test Production Command
+
+From project folder:
+
+```bash id="xah3cl"
+uvicorn app:app --host 127.0.0.1 --port 8000
+```
+
+Make sure IIS still works.
+
+---
+
+# Step 3 — Install Service
+
+Open admin terminal:
+
+```bash id="6zvzb5"
+C:\nssm\win64\nssm.exe install FastAPIService
+```
+
+A GUI opens.
+
+---
+
+# Step 4 — Configure NSSM
+
+## Application Path
+
+Point to Python:
+
+Example:
+
+```text id="mxpsdo"
+C:\Python313\python.exe
+```
+
+(or your actual python path)
+
+You can find it using:
+
+```bash id="dizk4k"
+where python
+```
+
+---
+
+## Startup Directory
+
+```text id="b6h4nt"
+C:\Users\Harsh\Desktop\Projects\pyiis
+```
+
+---
+
+## Arguments
+
+```text id="kqfgv8"
+-m uvicorn app:app --host 127.0.0.1 --port 8000
+```
+
+---
+
+# Step 5 — Install Service
+
+Click:
+
+```text id="5vqjlwm"
+Install Service
+```
+
+---
+
+# Step 6 — Start Service
+
+Either:
+
+```bash id="uwc58h"
+net start FastAPIService
+```
+
+or from Services Manager.
+
+---
+
+# Step 7 — Verify
+
+Now these should work even after closing terminal:
+
+```text id="w5cyl9"
+http://127.0.0.1:8000
+```
+
+and:
+
+```text id="odk3uh"
+http://localhost:81
+```
+
+---
+
+# Final Architecture
+
+```text id="wycqj9"
+Windows Service (NSSM)
+        ↓
+Uvicorn
+        ↓
+FastAPI
+        ↓
+IIS Reverse Proxy
+```
+
+This is a proper Windows-hosted deployment setup.
+
+
+
+
+
+
